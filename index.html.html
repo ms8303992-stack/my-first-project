@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Firebase Auth</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+       const firebaseConfig = {
+    apiKey: "AIzaSyBB6WXpxsM7yI0aBwAOAmtyzeMJzjG-UYY",
+    authDomain: "vue-auth-demo-cfc46.firebaseapp.com",
+    projectId: "vue-auth-demo-cfc46",
+    storageBucket: "vue-auth-demo-cfc46.firebasestorage.app",
+    messagingSenderId: "224524142886",
+    appId: "1:224524142886:web:ed45705fce6d9252ab99e7",
+    measurementId: "G-F9BKKY0X6L"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentView: 'login',
+                    user: null,
+                    email: '',
+                    password: '',
+                    error: '',
+                    success: '',
+                    loading: false
+                }
+            },
+            mounted() {
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        this.user = user;
+                        this.currentView = 'home';
+                    } else {
+                        this.user = null;
+                        if (this.currentView === 'home') {
+                            this.currentView = 'login';
+                        }
+                    }
+                });
+            },
+            methods: {
+                async register() {
+                    this.error = '';
+                    this.success = '';
+                    this.loading = true;
+
+                    try {
+                        await createUserWithEmailAndPassword(auth, this.email, this.password);
+                        this.success = 'Registration successful!';
+                        this.email = '';
+                        this.password = '';
+                    } catch (err) {
+                        this.error = err.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async login() {
+                    this.error = '';
+                    this.success = '';
+                    this.loading = true;
+
+                    try {
+                        await signInWithEmailAndPassword(auth, this.email, this.password);
+                        this.email = '';
+                        this.password = '';
+                    } catch (err) {
+                        this.error = err.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async logout() {
+                    try {
+                        await signOut(auth);
+                        this.currentView = 'login';
+                    } catch (err) {
+                        this.error = err.message;
+                    }
+                },
+                switchToRegister() {
+                    this.currentView = 'register';
+                    this.error = '';
+                    this.success = '';
+                    this.email = '';
+                    this.password = '';
+                },
+                switchToLogin() {
+                    this.currentView = 'login';
+                    this.error = '';
+                    this.success = '';
+                    this.email = '';
+                    this.password = '';
+                }
+            }
+        }).mount('#app');
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .auth-card, .home-card {
+            background: white;
+            padding: 45px 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 35px;
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #2d3748;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: none;
+            background: #f7fafc;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #2d3748;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            background: #edf2f7;
+        }
+
+        input::placeholder {
+            color: #a0aec0;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 14px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            padding: 12px;
+            background: #fee;
+            border-radius: 8px;
+        }
+
+        .success {
+            color: #27ae60;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            padding: 12px;
+            background: #efe;
+            border-radius: 8px;
+        }
+
+        .switch-auth {
+            text-align: center;
+            margin-top: 30px;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .switch-auth a {
+            color: #667eea;
+            text-decoration: underline;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .switch-auth a:hover {
+            color: #764ba2;
+        }
+
+        .user-info {
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .label {
+            font-weight: 500;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .value {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .welcome-icon {
+            text-align: center;
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 35px;
+            font-size: 15px;
+            margin-top: -20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div v-if="currentView === 'login'" class="auth-card">
+            <h1>Login</h1>
+            <form @submit.prevent="login">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input
+                        type="email"
+                        id="login-email"
+                        v-model="email"
+                        placeholder="Enter your email"
+                        required
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input
+                        type="password"
+                        id="login-password"
+                        v-model="password"
+                        placeholder="••••••"
+                        required
+                    />
+                </div>
+                <button type="submit" class="btn-primary" :disabled="loading">
+                    {{ loading ? 'Logging in...' : 'Login' }}
+                </button>
+                <p v-if="error" class="error">{{ error }}</p>
+            </form>
+            <p class="switch-auth">
+                <a @click="switchToRegister">Register</a>
+            </p>
+        </div>
+
+        <div v-if="currentView === 'register'" class="auth-card">
+            <h1>Register</h1>
+            <form @submit.prevent="register">
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input
+                        type="email"
+                        id="register-email"
+                        v-model="email"
+                        placeholder="Enter your email"
+                        required
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input
+                        type="password"
+                        id="register-password"
+                        v-model="password"
+                        placeholder="••••••"
+                        required
+                        minlength="6"
+                    />
+                </div>
+                <button type="submit" class="btn-primary" :disabled="loading">
+                    {{ loading ? 'Registering...' : 'Register' }}
+                </button>
+                <p v-if="error" class="error">{{ error }}</p>
+                <p v-if="success" class="success">{{ success }}</p>
+            </form>
+            <p class="switch-auth">
+                Already have an account?
+                <a @click="switchToLogin">Login here</a>
+            </p>
+        </div>
+
+        <div v-if="currentView === 'home'" class="home-card">
+            <div class="welcome-icon">🎉</div>
+            <h1>Welcome Home!</h1>
+            <p class="subtitle">You are successfully logged in</p>
+
+            <div class="user-info">
+                <div class="info-item">
+                    <span class="label">📧 Email:</span>
+                    <span class="value">{{ user?.email }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">🆔 User ID:</span>
+                    <span class="value">{{ user?.uid?.substring(0, 8) }}...</span>
+                </div>
+            </div>
+
+            <button @click="logout" class="btn-logout">
+                Logout
+            </button>
+        </div>
+    </div>
+</body>
+</html>
